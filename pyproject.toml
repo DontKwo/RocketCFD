@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Automated OpenFOAM CFD tool for LRA rocket aerodynamics."
 readme = "README.md"
 authors = [
-    { name = "RocketCFD contributors" }
+    { name = "DontKwo" }
 ]
 requires-python = ">=3.13"
 dependencies = [
