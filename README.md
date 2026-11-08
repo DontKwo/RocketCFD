@@ -17,6 +17,12 @@ AEROSPACE & SIMULATION DISCLAIMER: RocketCFD is an academic and research fluid d
 
 `RocketCFD` is a specialized desktop and command-line application that automates the entire OpenFOAM computational fluid dynamics (CFD) workflow for launch vehicle aerodynamics. It bridges the gap between complex CFD configurations and aerospace engineering analysis by providing intelligent, rocket-sensible defaults for meshing, boundary conditions, turbulence models, and solver selection across subsonic, supersonic, and hypersonic regimes.
 
+### Documentation Navigation
+- [User Guide](docs/USER_GUIDE.md): Step-by-step tutorial on setup, meshing, solving, and visualization.
+- [FAQ](docs/FAQ.md): Common questions and answers.
+- [Theoretical Background](docs/THEORY.md): Equations, numeric schemes, and physical models.
+- [AI Agent Reference](AGENTS.md): Code architecture and operational execution rules.
+
 ---
 
 ## Key Features
