@@ -1,0 +1,1 @@
+This repository contains `examples/sphere.stl`, a simple geometric sphere model used exclusively for test cases. It is provided by the RocketCFD contributors and contains no third-party copyrighted geometry.

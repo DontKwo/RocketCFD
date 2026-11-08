@@ -3,9 +3,13 @@
 > **Automated OpenFOAM CFD and aerodynamic analysis tool for launch vehicles and high-speed rocket aerodynamics.**
 
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![CFD Backend](https://img.shields.io/badge/Backend-OpenFOAM-brightgreen.svg)](https://openfoam.org/)
 [![GUI](https://img.shields.io/badge/GUI-PySide6%20%2F%20PyVista-orange.svg)](https://www.pyvista.org/)
+
+---
+
+AEROSPACE & SIMULATION DISCLAIMER: RocketCFD is an academic and research fluid dynamics simulation framework. It is NOT certified for FAA, NASA, or commercial flight-readiness evaluations, real rocket staging, or mission-critical engineering design. The software is provided AS IS, without warranty of any kind. The author assumes no liability for simulation inaccuracies, hardware failures, or damages.
 
 ---
 
@@ -117,4 +121,4 @@ RocketCFD has been benchmarked against wind tunnel and flight test reference dat
 ---
 
 ## License
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
