@@ -977,7 +977,9 @@ class MainWindow(QWidget, ReferenceControlsMixin, SweepStatusMixin):
             return 0.0
         bounds = self.panel_mesh.bounds()
         index = self._axis_index(axis)
-        return 0.5 * (bounds[2 * index] + bounds[2 * index + 1])
+        min_bound = bounds[2 * index]
+        max_bound = bounds[2 * index + 1]
+        return 0.5 * (min_bound + max_bound)
 
     def _on_symmetry_toggled(self, checked: bool = False) -> None:  # noqa: 21 (Qt slot signature)
         for checkbox, axis_combo, offset_spin in zip(
@@ -1173,7 +1175,11 @@ class MainWindow(QWidget, ReferenceControlsMixin, SweepStatusMixin):
         velocity_key = "mach" if self.mach_input_checkbox.isChecked() else "velocity"
         axis_keys = [velocity_key if key == "velocity" else key for key in FLOW_AXIS_KEYS]
         try:
-            axes = [axis for key in axis_keys if (axis := self.rows[key].axis()) is not None]
+            axes = []
+            for key in axis_keys:
+                parsed_axis = self.rows[key].axis()
+                if parsed_axis is not None:
+                    axes.append(parsed_axis)
         except ValueError:
             self.geometry_status_label.setText("Could not parse a flow-condition field; check the syntax tooltip.")
             return

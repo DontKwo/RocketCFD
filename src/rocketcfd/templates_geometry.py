@@ -2,8 +2,7 @@
 quick comparative studies, without needing an external CAD tool for a first pass.
 
 Parts are assembled by concatenation, not a boolean union, so seams between parts are
-open surfaces rather than a single watertight solid; run the result through
-geometry.ensure_watertight (as the geometry-load path already does) before meshing.
+open surfaces before running through geometry.ensure_watertight before meshing.
 """
 from __future__ import annotations
 
@@ -84,14 +83,8 @@ def nosecone(length: float, base_diameter: float, shape: str = NOSECONE_OGIVE, s
 def trapezoidal_fin(root_chord: float, tip_chord: float, span: float, sweep_distance: float, thickness: float) -> trimesh.Trimesh:
     """A flat-plate fin of uniform thickness: root chord along the body's surface at
     x=0..root_chord, tip chord offset by sweep_distance and raised by span."""
-    outline = np.array(
-        [
-            [0.0, 0.0],
-            [root_chord, 0.0],
-            [sweep_distance + tip_chord, span],
-            [sweep_distance, span],
-        ]
-    )
+    points = [[0.0, 0.0], [root_chord, 0.0], [sweep_distance + tip_chord, span], [sweep_distance, span]]
+    outline = np.array(points)
     polygon_mesh = trimesh.creation.extrude_polygon(_to_shapely_polygon(outline), height=thickness)
     polygon_mesh.apply_translation([0.0, 0.0, -thickness / 2.0])
     return polygon_mesh

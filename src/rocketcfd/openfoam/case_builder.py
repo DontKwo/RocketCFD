@@ -69,7 +69,7 @@ def write_mesh_case(
     mesh_settings.use_target_y_plus, sizes the first boundary-layer cell to
     mesh_settings.target_y_plus for that condition (see openfoam.boundary_layer); the
     mesh is still built once and shared across the whole sweep, so this uses one
-    representative condition rather than a per-condition layer size."""
+    representative condition instead of a per-condition layer size."""
     (mesh_dir / "constant" / "triSurface").mkdir(parents=True, exist_ok=True)
     (mesh_dir / "system").mkdir(parents=True, exist_ok=True)
 

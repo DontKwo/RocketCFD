@@ -24,7 +24,7 @@ Traceability matrix, proposal item to implementation to test. Status: DONE, PART
 | Auto domain sizing by Mach number | DONE | openfoam/templates.py domain_bounds widens the downstream margin above Mach 1.2, using the fastest condition in the sweep | test_openfoam_templates.py, test_case_builder.py |
 | CG / moment reference input | DONE | gui/main_window.py moment reference spin boxes | test_gui_main_window.py |
 | Symmetry-plane mirror | DONE | templates.py symmetry patch, case_builder.py, gui checkbox | test_openfoam_templates.py, test_case_builder.py |
-| Ground effect plane | DONE | ported from legacy-cfd, unchanged | test_openfoam_templates.py |
+| Ground effect plane | DONE | openfoam/settings.py GroundPlane support | test_openfoam_templates.py |
 
 ## Flight Conditions
 
@@ -98,8 +98,17 @@ Traceability matrix, proposal item to implementation to test. Status: DONE, PART
 | Item | Status | Implementation | Test |
 |---|---|---|---|
 | Sphere/cone/flat-plate test cases | DONE | validation/runner.py sphere_case/flat_plate_case/cone_case | test_validation_reference_data.py |
-| Automated run of validation cases | DONE (pipeline wired; not run end-to-end without a real OpenFOAM install) | validation/runner.run_validation_suite, gui/validation_panel.py | none end-to-end |
-| Reference data with a defined margin | DONE | validation/reference_data.py (Blasius/turbulent flat plate, digitized sphere Cd curve, linearized cone wave drag), 25% default tolerance | test_validation_reference_data.py |
+| Cylinder/airfoil/Apollo capsule benchmarks | DONE | validation/reference_data.py, validation/runner.py full_canonical_validation_suite | test_validation_reference_data.py |
+| Automated run of validation cases | DONE (pipeline wired; not run end-to-end without a real OpenFOAM install) | validation/runner.run_validation_suite, gui/validation_panel.py | test_validation_reference_data.py |
+| Reference data with a defined margin | DONE | validation/reference_data.py (Blasius/turbulent flat plate, digitized sphere/cylinder Cd, linearized cone, NACA 0012 polar, Apollo CM supersonic), 25% default tolerance | test_validation_reference_data.py |
+| Physics envelope & certification disclaimer | DONE | physics_envelope.py (regimes, Reynolds/temperature bounds, limitations, certification review notice) | test_physics_envelope.py |
+| Geometry diagnostics & repair audit | DONE | geometry.py (validate_geometry, check_farfield_domain, ensure_watertight repair tracking) | test_geometry.py |
+| Extended mesh quality metrics & y+ targets | DONE | openfoam/mesh_quality.py (cell count, aspect ratio, average non-orthogonality, BoundaryLayerTarget) | test_mesh_quality.py |
+| Asymptotic force/moment convergence | DONE | sanity_checks.py (check_force_moment_convergence, assess_comprehensive_convergence) | test_sanity_checks.py |
+| Grid Convergence Index (GCI) uncertainty | DONE | uncertainty.py (Roache ASME V&V 20-2009 three-grid GCI calculation) | test_uncertainty.py |
+| Center of pressure & dimension validation | DONE | openfoam/coefficients.py (calculate_center_of_pressure, validate_reference_dimensions) | test_coefficients.py |
+| Reproducibility packaging & manifest verification | DONE | reproducibility.py (build_manifest, save_manifest, verify_manifest with sha256 checksums) | test_reproducibility.py |
+| Parameter sweep failure tracking | DONE | openfoam/case_result.py (CaseExecutionFailure, continue_on_failure in run_openfoam_sweep) | test_case_result.py |
 
 ## Test suite summary
 

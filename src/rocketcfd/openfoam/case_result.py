@@ -69,6 +69,15 @@ class OpenFoamCaseResult:
     application: str = ""
 
 
+@dataclass
+class CaseExecutionFailure:
+    case_index: int
+    condition: FlowCondition
+    stage: str
+    error_message: str
+    case_dir: Path | None = None
+
+
 def _save_case_metadata(
     run_dir: Path, condition: FlowCondition, reference_area: float, reference_length: float, application: str,
 ) -> None:
@@ -295,6 +304,8 @@ def run_openfoam_sweep(
     on_case_started: Callable[[str, Path, str], None] | None = None,
     symmetry_planes: tuple[SymmetryPlane, ...] = (),
     use_cache: bool = True,
+    continue_on_failure: bool = False,
+    failed_cases: list[CaseExecutionFailure] | None = None,
 ) -> list[OpenFoamCaseResult]:
     execution.ensure_ready(on_log)
 
@@ -323,35 +334,51 @@ def run_openfoam_sweep(
         case_hash = compute_case_hash(mesh_hash, condition, solver_settings, moment_ref, reference_area, reference_length)
         cached_run_dir = cache.lookup(case_hash) if use_cache else None
         label = condition.name or str(index)
-        if cached_run_dir is not None and _has_forces_output(cached_run_dir):
-            on_log(f"[{label}] reusing cached result from {cached_run_dir}")
-            result = _load_case_result(cached_run_dir)
-        else:
-            run_dir = _unique_run_dir(case_root, index, condition, model_name)
-            direction = effective_condition.direction_unit()
-            area, length = _reference_dims(panel_mesh, direction, reference_area, reference_length)
+        run_dir: Path | None = None
+        try:
+            if cached_run_dir is not None and _has_forces_output(cached_run_dir):
+                on_log(f"[{label}] reusing cached result from {cached_run_dir}")
+                result = _load_case_result(cached_run_dir)
+            else:
+                run_dir = _unique_run_dir(case_root, index, condition, model_name)
+                direction = effective_condition.direction_unit()
+                area, length = _reference_dims(panel_mesh, direction, reference_area, reference_length)
 
-            on_log(f"[{label}] building run case in {run_dir}")
-            selection = case_builder.write_run_case(
-                run_dir, mesh_dir, effective_condition, solver_settings, moment_ref, ground_plane, length, symmetry_planes,
-            )
-            for warning in selection.warnings:
-                on_log(f"[{label}] warning: {warning}")
-            _save_case_metadata(run_dir, condition, area, length, selection.application)
-            on_log(f"[{label}] solving ({selection.application})...")
-            if on_case_started is not None:
-                on_case_started(label, run_dir, selection.application)
-            execution.run(solve_commands(selection.application, solver_settings), run_dir, on_log)
+                on_log(f"[{label}] building run case in {run_dir}")
+                selection = case_builder.write_run_case(
+                    run_dir, mesh_dir, effective_condition, solver_settings, moment_ref, ground_plane, length, symmetry_planes,
+                )
+                for warning in selection.warnings:
+                    on_log(f"[{label}] warning: {warning}")
+                _save_case_metadata(run_dir, condition, area, length, selection.application)
+                on_log(f"[{label}] solving ({selection.application})...")
+                if on_case_started is not None:
+                    on_case_started(label, run_dir, selection.application)
+                execution.run(solve_commands(selection.application, solver_settings), run_dir, on_log)
 
-            force, moment = parse_forces_dat(find_forces_file(run_dir))
-            coefficients = from_force_moment(effective_condition, force, moment, area, length)
-            result = OpenFoamCaseResult(
-                condition=condition, coefficients=coefficients, reference_area=area, reference_length=length,
-                force=force, moment=moment, case_dir=run_dir, application=selection.application,
-            )
-            cache.record(case_hash, run_dir)
-        results.append(result)
+                force, moment = parse_forces_dat(find_forces_file(run_dir))
+                coefficients = from_force_moment(effective_condition, force, moment, area, length)
+                result = OpenFoamCaseResult(
+                    condition=condition, coefficients=coefficients, reference_area=area, reference_length=length,
+                    force=force, moment=moment, case_dir=run_dir, application=selection.application,
+                )
+                cache.record(case_hash, run_dir)
+            results.append(result)
+            if on_case_result is not None:
+                on_case_result(result)
+        except Exception as exc:
+            on_log(f"[{label}] error during execution: {exc}")
+            if failed_cases is not None:
+                failed_cases.append(
+                    CaseExecutionFailure(
+                        case_index=index,
+                        condition=condition,
+                        stage="solve",
+                        error_message=str(exc),
+                        case_dir=run_dir,
+                    )
+                )
+            if not continue_on_failure:
+                raise
         on_progress(index + 1, total)
-        if on_case_result is not None:
-            on_case_result(result)
     return results

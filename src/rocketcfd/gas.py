@@ -12,7 +12,9 @@ SUTHERLAND_S = 110.4
 
 def sutherland_viscosity(temperature: float) -> float:
     t_ratio = temperature / SUTHERLAND_T_REF
-    return SUTHERLAND_MU_REF * t_ratio**1.5 * (SUTHERLAND_T_REF + SUTHERLAND_S) / (temperature + SUTHERLAND_S)
+    power_term = t_ratio**1.5
+    temp_term = (SUTHERLAND_T_REF + SUTHERLAND_S) / (temperature + SUTHERLAND_S)
+    return SUTHERLAND_MU_REF * power_term * temp_term
 
 
 def speed_of_sound(temperature: float, gamma: float = GAMMA_AIR) -> float:

@@ -82,6 +82,7 @@ class MeshSettings:
     feature_refinement_levels: dict[str, tuple[int, int]] = field(default_factory=dict)
     max_non_orthogonality: float = 65.0
     max_skewness: float = 4.0
+    max_aspect_ratio: float = 1000.0
     require_mesh_quality_pass: bool = True
 
 

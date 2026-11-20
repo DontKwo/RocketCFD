@@ -27,7 +27,7 @@ AEROSPACE & SIMULATION DISCLAIMER: RocketCFD is an academic and research fluid d
 
 ## Key Features
 
-### 🚀 Automated OpenFOAM Workflow
+### Automated OpenFOAM Workflow
 * **Intelligent Solver Selection**: Automatically selects and sets up the appropriate solver based on Mach number ($0 < M < 8$):
   * **Subsonic/Incompressible**: `simpleFoam`
   * **Transonic/Supersonic**: `rhoSimpleFoam` / `rhoPimpleFoam`
@@ -35,19 +35,19 @@ AEROSPACE & SIMULATION DISCLAIMER: RocketCFD is an academic and research fluid d
 * **Automated Boundary Conditions**: Couples atmospheric parameters, vehicle velocity, angle of attack ($\alpha$), sideslip ($\beta$), and prevailing wind vectors directly into the solved boundary equations.
 * **ISA Atmosphere Lookup**: Built-in International Standard Atmosphere model extending past 50,000 ft.
 
-### 📐 Geometry & Watertight Validation
+### Geometry & Watertight Validation
 * **Multi-Format Support**: Imports raw **STL** geometry out of the box, with optional **STEP** and **IGES** CAD support via OpenCASCADE (`cadquery-ocp`).
 * **Automated Watertight Repair**: Detects non-manifold edges, self-intersections, and open holes, automatically repairing meshes via `pymeshfix` and `trimesh`.
 * **Domain Sizing**: Automatically sizes computational domain bounds based on vehicle body length and extends downstream boundaries dynamically based on Mach number.
 * **Symmetry & Ground Effects**: Supports symmetry-plane half-body solves and ground-effect modeling.
 
-### 🕸️ Automated Meshing (`snappyHexMesh`)
+### Automated Meshing (`snappyHexMesh`)
 * **Density Presets**: Coarse, Medium, and Fine presets configure background mesh resolution, surface refinements, and feature edge snapping.
 * **Boundary Layer & $y^+$ Sizing**: Automatically calculates and sizes first-layer prism cell thickness to target specified $y^+$ values based on flat-plate boundary layer theory.
 * **Feature Refinement**: Targets fin edges, nosecone shoulders, boattails, and expected shock standoff zones.
 * **Pre-Solve Mesh Previewer**: Inspect generated 3D surface mesh cells and aspect ratios in the interactive viewer before initiating runs.
 
-### 📊 Real-Time Post-Processing & Analytics
+### Real-Time Post-Processing & Analytics
 * **Live In-App Residual Monitoring**: Real-time plots for continuity, momentum, and turbulence equation convergence during active solves.
 * **3D Surface & Field Visualizations**: Interactive PyVista viewport displaying:
   * Surface pressure coefficient ($C_p$) contours

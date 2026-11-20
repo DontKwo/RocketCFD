@@ -14,7 +14,11 @@ import trimesh
 
 from rocketcfd.flow import FlowCondition
 from rocketcfd.geometry import to_panel_mesh
-from rocketcfd.openfoam.case_result import import_case_results, run_openfoam_sweep
+from rocketcfd.openfoam.case_result import (
+    CaseExecutionFailure,
+    import_case_results,
+    run_openfoam_sweep,
+)
 from rocketcfd.openfoam.coefficients import from_force_moment
 from rocketcfd.openfoam.results_parser import parse_u_field
 from rocketcfd.openfoam.settings import MeshSettings, SolverSettings
@@ -149,3 +153,40 @@ def test_run_openfoam_sweep_couples_wind_into_solved_bc_and_reports_vehicle_cond
     # vehicle velocity -- i.e. a nonzero Y-component from the 90-degree crosswind.
     solved_velocity = parse_u_field(run_dir)
     assert solved_velocity[1] == pytest.approx(condition.wind_speed, abs=1e-6)
+
+
+def test_run_openfoam_sweep_continue_on_failure_tracks_errors(tmp_path: Path) -> None:
+    panel_mesh = _sphere_panel_mesh()
+    cond1 = FlowCondition(name="cond1", velocity=50.0)
+    cond2 = FlowCondition(name="cond2", velocity=100.0)
+
+    class FailingExecutionBackend(_FakeExecutionBackend):
+        def run(self, commands: list[str], case_dir: Path, on_log: object) -> None:
+            if "run_001" in str(case_dir):
+                raise RuntimeError("solver blown up")
+            super().run(commands, case_dir, on_log)
+
+    backend = FailingExecutionBackend(case_root=tmp_path / "cases")
+    failed_list: list[CaseExecutionFailure] = []
+
+    results = run_openfoam_sweep(
+        panel_mesh,
+        [cond1, cond2],
+        np.zeros(3),
+        None,
+        MeshSettings(),
+        SolverSettings(n_processors=1),
+        backend,
+        None,
+        None,
+        on_log=lambda _line: None,
+        on_progress=lambda _done, _total: None,
+        use_cache=False,
+        continue_on_failure=True,
+        failed_cases=failed_list,
+    )
+
+    assert len(results) == 1
+    assert len(failed_list) == 1
+    assert failed_list[0].case_index == 1
+    assert "solver blown up" in failed_list[0].error_message

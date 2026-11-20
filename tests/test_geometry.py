@@ -11,11 +11,13 @@ from rocketcfd import geometry
 from rocketcfd.geometry import (
     CAD_INSTALL_HINT,
     GeometryNotWatertightError,
+    check_farfield_domain,
     ensure_watertight,
     frontal_area,
     load_model,
     rotate_mesh,
     to_panel_mesh,
+    validate_geometry,
 )
 
 EXAMPLES_DIR = Path(__file__).parent.parent / "examples"
@@ -94,3 +96,40 @@ def test_frontal_area_of_sphere_matches_analytic_disk() -> None:
     area = frontal_area(panel_mesh, np.array([1.0, 0.0, 0.0]))
     expected = np.pi * radius**2
     assert abs(area - expected) / expected < 0.05
+
+
+def test_validate_geometry_watertight_sphere() -> None:
+    mesh = trimesh.creation.icosphere(radius=1.0)
+    report = validate_geometry(mesh)
+    assert report.is_watertight
+    assert report.is_manifold
+    assert report.non_manifold_edge_count == 0
+    assert report.degenerate_face_count == 0
+    assert report.scale_warning is None
+
+
+def test_validate_geometry_scale_warnings() -> None:
+    huge = trimesh.creation.box(extents=[200.0, 10.0, 10.0])
+    tiny = trimesh.creation.box(extents=[0.01, 0.01, 0.01])
+    assert "millimeters" in validate_geometry(huge).scale_warning
+    assert "small" in validate_geometry(tiny).scale_warning
+
+
+def test_check_farfield_domain_checks_margins() -> None:
+    mesh_bounds = (-1.0, 1.0, -0.2, 0.2, -0.2, 0.2)
+    # Adequate margins: 2x upstream (4m), 5x downstream (10m), 2x lateral (4m).
+    good_domain = (-10.0, 15.0, -5.0, 5.0, -5.0, 5.0)
+    assert check_farfield_domain(mesh_bounds, good_domain) == []
+
+    # Tight domain: too small upstream and lateral.
+    tight_domain = (-2.0, 3.0, -0.5, 0.5, -0.5, 0.5)
+    warnings = check_farfield_domain(mesh_bounds, tight_domain)
+    assert len(warnings) > 0
+
+
+def test_ensure_watertight_records_applied_repairs() -> None:
+    box = trimesh.creation.box(extents=[1.0, 1.0, 1.0])
+    holey = trimesh.Trimesh(vertices=box.vertices, faces=box.faces[:-1], process=False)
+    _, report = ensure_watertight(holey)
+    assert len(report.repairs_applied) > 0
+    assert "fill_holes" in report.repairs_applied

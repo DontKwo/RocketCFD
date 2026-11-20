@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -28,6 +28,19 @@ class RepairReport:
     was_watertight: bool
     is_watertight: bool
     method: str
+    repairs_applied: list[str] = field(default_factory=list)
+
+
+@dataclass
+class GeometryValidationReport:
+    is_watertight: bool
+    is_manifold: bool
+    non_manifold_edge_count: int
+    degenerate_face_count: int
+    bounds: tuple[float, float, float, float, float, float]
+    characteristic_length: float
+    scale_warning: str | None = None
+    warnings: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -81,26 +94,101 @@ def load_model(path: str | Path) -> trimesh.Trimesh:
     return mesh
 
 
+def validate_geometry(mesh: trimesh.Trimesh) -> GeometryValidationReport:
+    """Validates geometry watertightness, non-manifold edges, degenerate faces, and scale."""
+    low = mesh.vertices.min(axis=0)
+    high = mesh.vertices.max(axis=0)
+    bounds = (
+        float(low[0]), float(high[0]),
+        float(low[1]), float(high[1]),
+        float(low[2]), float(high[2]),
+    )
+    span = high - low
+    char_length = float(np.max(span)) if len(span) > 0 else 1.0
+
+    degenerate_faces = int(np.sum(mesh.area_faces <= 1e-12))
+    edges = mesh.edges_sorted
+    if len(edges) > 0:
+        _, edge_counts = np.unique(edges, axis=0, return_counts=True)
+        non_manifold = int(np.sum(edge_counts > 2))
+    else:
+        non_manifold = 0
+
+    warnings: list[str] = []
+    scale_warning: str | None = None
+    if char_length > 100.0:
+        scale_warning = f"Characteristic length {char_length:.1f} m is large; verify model is not in millimeters."
+        warnings.append(scale_warning)
+    elif char_length < 0.05:
+        scale_warning = f"Characteristic length {char_length:.3f} m is small; verify model scale."
+        warnings.append(scale_warning)
+
+    if not mesh.is_watertight:
+        warnings.append("Mesh is not watertight.")
+    if non_manifold > 0:
+        warnings.append(f"Mesh has {non_manifold} non-manifold edges.")
+    if degenerate_faces > 0:
+        warnings.append(f"Mesh has {degenerate_faces} zero-area degenerate faces.")
+
+    return GeometryValidationReport(
+        is_watertight=bool(mesh.is_watertight),
+        is_manifold=(non_manifold == 0),
+        non_manifold_edge_count=non_manifold,
+        degenerate_face_count=degenerate_faces,
+        bounds=bounds,
+        characteristic_length=char_length,
+        scale_warning=scale_warning,
+        warnings=warnings,
+    )
+
+
+def check_farfield_domain(
+    mesh_bounds: tuple[float, float, float, float, float, float],
+    domain_bounds: tuple[float, float, float, float, float, float],
+) -> list[str]:
+    """Checks whether the domain box provides adequate margins around the geometry."""
+    warnings: list[str] = []
+    m_xmin, m_xmax, m_ymin, m_ymax, m_zmin, m_zmax = mesh_bounds
+    d_xmin, d_xmax, d_ymin, d_ymax, d_zmin, d_zmax = domain_bounds
+    length = max(m_xmax - m_xmin, 1e-6)
+
+    upstream = m_xmin - d_xmin
+    downstream = d_xmax - m_xmax
+    lateral_y = min(m_ymin - d_ymin, d_ymax - m_ymax)
+    lateral_z = min(m_zmin - d_zmin, d_zmax - m_zmax)
+
+    if upstream < 2.0 * length:
+        warnings.append(f"Upstream margin ({upstream:.2f} m) is less than 2x body length ({length:.2f} m).")
+    if downstream < 5.0 * length:
+        warnings.append(f"Downstream margin ({downstream:.2f} m) is less than 5x body length ({length:.2f} m).")
+    if min(lateral_y, lateral_z) < 2.0 * length:
+        warnings.append(f"Lateral margin ({min(lateral_y, lateral_z):.2f} m) is less than 2x body length.")
+    return warnings
+
+
 def ensure_watertight(mesh: trimesh.Trimesh) -> tuple[trimesh.Trimesh, RepairReport]:
-    """Attempts automatic repair; raises GeometryNotWatertightError if the mesh is still
-    not watertight afterward, so callers surface a manual-fix message instead of running
-    a case on leaky geometry."""
+    """Attempts automatic repair and logs steps taken without mutating the input mesh."""
     was_watertight = bool(mesh.is_watertight)
     if was_watertight:
-        return mesh, RepairReport(True, True, "none")
+        return mesh.copy(), RepairReport(True, True, "none", ["none"])
 
+    repairs: list[str] = []
     repaired = mesh.copy()
     trimesh.repair.fix_winding(repaired)
+    repairs.append("fix_winding")
     trimesh.repair.fix_normals(repaired)
+    repairs.append("fix_normals")
     trimesh.repair.fill_holes(repaired)
+    repairs.append("fill_holes")
     if repaired.is_watertight:
-        return repaired, RepairReport(False, True, "trimesh_fill_holes")
+        return repaired, RepairReport(False, True, "trimesh_fill_holes", repairs)
 
     fixed_vertices, fixed_faces = _pymeshfix_repair(mesh.vertices, mesh.faces)
     repaired = trimesh.Trimesh(vertices=fixed_vertices, faces=fixed_faces, process=True)
+    repairs.append("pymeshfix")
     if not repaired.is_watertight:
         raise GeometryNotWatertightError(MANUAL_REPAIR_HINT)
-    return repaired, RepairReport(False, True, "pymeshfix")
+    return repaired, RepairReport(False, True, "pymeshfix", repairs)
 
 
 def _pymeshfix_repair(vertices: np.ndarray, faces: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

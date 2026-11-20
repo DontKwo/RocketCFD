@@ -77,7 +77,7 @@ def parse_forces_dat(path: Path) -> tuple[np.ndarray, np.ndarray]:
     versions write forces and moments to separate force.dat/moment.dat files; older versions
     combine both into a single force(s).dat row. Either format may report 2 triplets
     (pressure, viscous) or 3 (pressure, viscous, porous) per vector, so the triplet count
-    is inferred from the row length rather than assumed fixed."""
+    is inferred directly from the row length."""
     moment_path = path.parent / "moment.dat"
     if moment_path.exists():
         force_row = _last_numeric_row(path, _MIN_SPLIT_ROW_COLUMNS)
