@@ -157,8 +157,8 @@ def test_run_openfoam_sweep_couples_wind_into_solved_bc_and_reports_vehicle_cond
 
 def test_run_openfoam_sweep_continue_on_failure_tracks_errors(tmp_path: Path) -> None:
     panel_mesh = _sphere_panel_mesh()
-    cond1 = FlowCondition(name="cond1", velocity=50.0)
-    cond2 = FlowCondition(name="cond2", velocity=100.0)
+    cond1 = FlowCondition(name="cond1", velocity=50.0, alpha_deg=0.0, beta_deg=0.0)
+    cond2 = FlowCondition(name="cond2", velocity=100.0, alpha_deg=0.0, beta_deg=0.0)
 
     class FailingExecutionBackend(_FakeExecutionBackend):
         def run(self, commands: list[str], case_dir: Path, on_log: object) -> None:

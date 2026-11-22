@@ -63,11 +63,11 @@ def calculate_gci(
 
     ratio = delta32 / delta21
     if ratio > 1.0:
-        convergence_type = "diverging"
+        convergence_type = "monotonic"
     elif ratio < 0.0:
         convergence_type = "oscillatory"
     else:
-        convergence_type = "monotonic"
+        convergence_type = "diverging"
 
     # Solve for apparent order p using fixed-point iteration.
     p = 2.0

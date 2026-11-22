@@ -25,8 +25,8 @@ def wind_unit(wind_direction_deg: float, wind_elevation_deg: float = 0.0) -> np.
 class FlowCondition:
     name: str
     velocity: float
-    alpha_deg: float
-    beta_deg: float
+    alpha_deg: float = 0.0
+    beta_deg: float = 0.0
     density: float = SEA_LEVEL_DENSITY
     temperature: float = SEA_LEVEL_TEMPERATURE
     gamma: float = GAMMA_AIR

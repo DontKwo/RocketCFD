@@ -35,7 +35,7 @@ def test_build_and_verify_manifest(tmp_path: Path) -> None:
 
 
 def test_verify_manifest_detects_tampering(tmp_path: Path) -> None:
-    condition = FlowCondition(name="test_cond", velocity=100.0)
+    condition = FlowCondition(name="test_cond", velocity=100.0, alpha_deg=0.0, beta_deg=0.0)
     manifest = build_manifest(
         geometry_hash="original_hash",
         units="m",

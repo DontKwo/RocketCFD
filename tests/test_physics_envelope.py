@@ -34,14 +34,14 @@ def test_validate_condition_inside_envelope_clean() -> None:
 
 def test_validate_condition_flags_excessive_mach() -> None:
     # Freestream speed corresponding to Mach ~ 10 at standard sea level temperature.
-    condition = FlowCondition(name="hypersonic", velocity=3400.0, density=1.225, temperature=288.15)
+    condition = FlowCondition(name="hypersonic", velocity=3400.0, alpha_deg=0.0, beta_deg=0.0, density=1.225, temperature=288.15)
     warnings = validate_flow_condition_envelope(condition)
     assert any("exceeds hard limit" in w for w in warnings)
 
 
 def test_validate_condition_flags_extreme_temperatures() -> None:
-    cryo = FlowCondition(name="cold", velocity=100.0, density=1.225, temperature=100.0)
-    hot = FlowCondition(name="hot", velocity=100.0, density=1.225, temperature=800.0)
+    cryo = FlowCondition(name="cold", velocity=100.0, alpha_deg=0.0, beta_deg=0.0, density=1.225, temperature=100.0)
+    hot = FlowCondition(name="hot", velocity=100.0, alpha_deg=0.0, beta_deg=0.0, density=1.225, temperature=800.0)
     assert any("below standard atmospheric" in w for w in validate_flow_condition_envelope(cryo))
     assert any("calorically perfect air" in w for w in validate_flow_condition_envelope(hot))
 

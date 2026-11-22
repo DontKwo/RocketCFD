@@ -39,7 +39,7 @@ def test_validate_reference_dimensions() -> None:
 
 
 def test_from_force_moment_populates_center_of_pressure() -> None:
-    condition = FlowCondition(name="test", velocity=100.0, density=1.225)
+    condition = FlowCondition(name="test", velocity=100.0, alpha_deg=0.0, beta_deg=0.0, density=1.225)
     force = np.array([100.0, 0.0, 50.0])
     moment = np.array([0.0, 25.0, 0.0])
     coeffs = from_force_moment(condition, force, moment, reference_area=1.0, reference_length=1.0)

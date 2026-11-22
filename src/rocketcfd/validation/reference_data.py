@@ -59,7 +59,7 @@ def apollo_capsule_reference(mach: float, alpha_deg: float) -> tuple[float, floa
     alpha_rad = np.radians(alpha_deg)
     # At alpha=0 deg, blunt heatshield drag coefficient is approximately 1.28.
     cd = float(1.28 * np.cos(alpha_rad) ** 2 + 0.3 * np.sin(alpha_rad) ** 2)
-    cl = float(0.4 * np.sin(2.0 * alpha_rad))
+    cl = float(0.55 * np.sin(2.0 * alpha_rad))
     # Normalized longitudinal center of pressure location Xcp / D measured from nose.
     xcp_over_d = float(0.65 - 0.05 * np.sin(alpha_rad))
     return cd, cl, xcp_over_d
