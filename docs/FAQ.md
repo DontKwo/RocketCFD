@@ -17,7 +17,7 @@ CFD runs, particularly compressible ones, can diverge if the mesh is poor or bou
 - **Regime specific**: Ensure you are not operating at a Mach number that invokes unsupported physics (e.g., $M > 8$ dissociation).
 
 ### How does RocketCFD choose the solver?
-Solver selection is fully automated based on the configured Mach number (see `src/rocketcfd/solver_selection.py`):
+Solver selection is fully automated based on the configured Mach number (see [solver_selection.py](../src/rocketcfd/solver_selection.py)):
 - **Incompressible ($M < 0.3$)**: Uses `simpleFoam`.
 - **Subsonic Compressible ($0.3 \leq M < 0.8$)**: Uses `rhoSimpleFoam`.
 - **Transonic ($0.8 \leq M < 1.2$)**: Uses transient `rhoPimpleFoam`.
@@ -25,3 +25,11 @@ Solver selection is fully automated based on the configured Mach number (see `sr
 
 ### How do boundary conditions work in RocketCFD?
 When you define a flight condition (Velocity, Alpha, Beta, Altitude), RocketCFD automatically writes the correct OpenFOAM dictionaries in the `0/` directory. It uses the 1976 Standard Atmosphere to calculate freestream pressure and temperature, and maps your vehicle's orientation into the velocity field boundary equations.
+
+## Related Documentation
+
+- [Project Overview](../README.md)
+- [User Guide](USER_GUIDE.md)
+- [OpenFOAM Installation Guide](OPENFOAM_INSTALLATION.md)
+- [Theoretical Background](THEORY.md)
+- [Security Policy](../SECURITY.md)

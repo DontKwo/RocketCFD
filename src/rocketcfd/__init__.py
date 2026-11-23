@@ -1,15 +1,9 @@
-"""RocketCFD: automated OpenFOAM CFD tool for LRA rocket aerodynamics."""
-import sys
+"""RocketCFD public application entrypoint."""
+from __future__ import annotations
 
-from PySide6.QtWidgets import QApplication
-
-from rocketcfd.gui.app_window import AppWindow
-from rocketcfd.gui.theme import build_stylesheet
+from rocketcfd.gui.web_app import launch_cli
 
 
-def main() -> None:  # noqa: 21 (entry point declared in pyproject.toml)
-    app = QApplication(sys.argv)
-    app.setStyleSheet(build_stylesheet())
-    window = AppWindow()
-    window.showMaximized()
-    sys.exit(app.exec())
+def main(argv: list[str] | None = None) -> int:  # noqa: 21
+    """Launch the RocketCFD WebView Studio or self-test probe."""
+    return launch_cli(argv)

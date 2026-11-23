@@ -14,7 +14,7 @@ uv build
 *(Tests can be run with `uv run pytest`)*
 
 ### Launching the Application
-RocketCFD comes with a built-in GUI built using PySide6 and PyVista. Launch the application from your terminal:
+Download the desktop executable from [RocketCFD Latest Releases](https://github.com/DontKwo/RocketCFD/releases/latest) (see the [Desktop Installation Guide](INSTALLATION.md)), or launch from source with `uv`:
 ```bash
 uv run rocketcfd
 ```
@@ -49,9 +49,16 @@ Navigate to the Mesh Settings pane to configure `snappyHexMesh` defaults:
 3. The selected solver (e.g., `rhoSimpleFoam`, `rhoPimpleFoam`) will begin executing.
 
 ### Live Monitoring
-During the solve, switch the Plot Mode to **Residuals** to view real-time plots of continuity, momentum, and turbulence equation convergence.
+During local OpenFOAM solves, monitor `log.<solver>` residuals and force histories to verify convergence of continuity, momentum, and turbulence equations.
 
-### 3D Visualization
-Once the solve is complete (or partially complete for transient solvers), you can view the results in the interactive PyVista viewport.
-* Switch the view modes to inspect **Surface Pressure ($C_p$)**, **Wall Shear Stress**, or **Volumetric Velocity Slices**.
-* Use your mouse to rotate, pan, and zoom around the computational domain.
+### Visualization
+Inspect parametric geometry profiles, cross-sections, Mach flight envelopes, and reference benchmarks directly in the RocketCFD WebView Studio, or load sampled OpenFOAM VTK outputs via PyVista helpers.
+
+## Related Documentation
+
+- [Project Overview](../README.md)
+- [Desktop Installation Guide](INSTALLATION.md)
+- [OpenFOAM Installation Guide](OPENFOAM_INSTALLATION.md)
+- [FAQ](FAQ.md)
+- [Theoretical Background](THEORY.md)
+- [Developer Guide](DEVELOPMENT.md)

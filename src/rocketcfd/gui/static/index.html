@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RocketCFD Studio</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <img src="/icon.png" alt="RocketCFD Icon" width="36" height="36" />
+        <div>
+          <h1>RocketCFD Studio</h1>
+          <p class="subtitle">Parametric rocket geometry, compressible flow regimes, and OpenFOAM automation</p>
+        </div>
+      </div>
+
+      <div class="controls-bar">
+        <label class="control-group" for="rocket.nosecone_shape">
+          <span>Nosecone</span>
+          <select id="rocket.nosecone_shape" data-testid="rocket.nosecone_shape"></select>
+        </label>
+        <label class="control-group" for="rocket.nosecone_length">
+          <span>Nose (m)</span>
+          <input id="rocket.nosecone_length" type="number" step="0.05" min="0.1" max="5" value="0.45" data-testid="rocket.nosecone_length" />
+        </label>
+        <label class="control-group" for="rocket.body_length">
+          <span>Body (m)</span>
+          <input id="rocket.body_length" type="number" step="0.05" min="0.1" max="20" value="1.55" data-testid="rocket.body_length" />
+        </label>
+        <label class="control-group" for="rocket.diameter">
+          <span>Diameter (m)</span>
+          <input id="rocket.diameter" type="number" step="0.01" min="0.02" max="5" value="0.15" data-testid="rocket.diameter" />
+        </label>
+        <label class="control-group" for="rocket.fin_count">
+          <span>Fins</span>
+          <input id="rocket.fin_count" type="number" step="1" min="3" max="8" value="4" data-testid="rocket.fin_count" />
+        </label>
+        <label class="control-group" for="rocket.fin_span">
+          <span>Fin Span (m)</span>
+          <input id="rocket.fin_span" type="number" step="0.01" min="0.02" max="2" value="0.14" data-testid="rocket.fin_span" />
+        </label>
+        <button type="button" class="btn-primary" id="rocket.build_btn" data-testid="rocket.build_btn">Build Geometry</button>
+      </div>
+
+      <div class="controls-bar">
+        <label class="control-group" for="flow.altitude_input">
+          <span>Altitude (m)</span>
+          <input id="flow.altitude_input" type="number" step="100" min="0" max="80000" value="1500" data-testid="flow.altitude_input" />
+        </label>
+        <label class="control-group" for="flow.velocity_input">
+          <span>Velocity (m/s)</span>
+          <input id="flow.velocity_input" type="number" step="10" min="1" max="2500" value="420" data-testid="flow.velocity_input" />
+        </label>
+        <label class="control-group" for="flow.alpha_input">
+          <span>Alpha (deg)</span>
+          <input id="flow.alpha_input" type="number" step="0.5" min="-25" max="25" value="2.5" data-testid="flow.alpha_input" />
+        </label>
+        <label class="control-group" for="flow.mesh_preset">
+          <span>Mesh Preset</span>
+          <select id="flow.mesh_preset" data-testid="flow.mesh_preset"></select>
+        </label>
+        <button type="button" class="btn-secondary" id="flow.compute_btn" data-testid="flow.compute_btn">Evaluate Solver</button>
+        <button type="button" class="btn-secondary" id="flow.export_btn" data-testid="flow.export_btn">Export OpenFOAM Case</button>
+        <button type="button" class="btn-secondary" id="header.theme_toggle" data-testid="header.theme_toggle">Light Theme</button>
+      </div>
+    </header>
+
+    <div id="status.banner" class="status-banner" role="status" aria-live="polite">
+      Configure rocket geometry and flight conditions to preview meshes and select OpenFOAM solvers.
+    </div>
+
+    <section class="kpi-grid" aria-label="Aerodynamic Summary Metrics">
+      <article class="kpi-card">
+        <div class="kpi-label">Flight Mach</div>
+        <div id="kpi.mach" class="kpi-value">--</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Selected Solver</div>
+        <div id="kpi.solver" class="kpi-value">--</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Surface Panels</div>
+        <div id="kpi.panels" class="kpi-value">--</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Dynamic Pressure</div>
+        <div id="kpi.pressure" class="kpi-value">--</div>
+      </article>
+    </section>
+
+    <section class="chart-tabs" aria-label="Studio Workspace Views">
+      <button type="button" class="tab-btn active" id="tabs.geometry_btn" data-testid="tabs.geometry_btn">Geometry Preview</button>
+      <button type="button" class="tab-btn" id="tabs.solver_btn" data-testid="tabs.solver_btn">Solver Regime Envelope</button>
+      <button type="button" class="tab-btn" id="tabs.validation_btn" data-testid="tabs.validation_btn">Validation Benchmarks</button>
+    </section>
+
+    <section class="card chart-card">
+      <img id="preview.image" class="chart-img" alt="RocketCFD Engineering Visualization" hidden />
+      <p id="preview.empty" class="muted">Engineering schematics and regime plots appear here after geometry build or solver evaluation.</p>
+    </section>
+
+    <div class="lower-grid">
+      <section class="card">
+        <h2>Canonical Validation Reference Table</h2>
+        <div id="table.validation_host" class="table-wrap">
+          <p class="muted">Loading validation reference metrics...</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>OpenFOAM Case &amp; Environment</h2>
+        <p id="env.status" class="muted">Checking OpenFOAM environment...</p>
+        <div id="files.case_host" class="table-wrap">
+          <p class="muted">Click Export OpenFOAM Case to write blockMeshDict, snappyHexMeshDict, controlDict, and body.stl to a local folder.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

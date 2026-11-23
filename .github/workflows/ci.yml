@@ -1,97 +1,188 @@
-name: CI
+name: CI & Release
 
 on:
   push:
     branches:
       - main
-      - master
   pull_request:
     branches:
       - main
-      - master
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  lint:
-    name: ClaudeMD Strict Linter
+  lint-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout RocketCFD
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
 
-      - name: Checkout ai-dev-tools for linter
-        uses: actions/checkout@v4
-        with:
-          repository: DontKwo/ai-dev-tools
-          path: .toolchain/ai-dev-tools
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Set up uv
+      - name: Setup uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: 'latest'
+          python-version: "3.13"
 
-      - name: Run ClaudeMD Strict Linter
-        run: uv run --no-project python .toolchain/ai-dev-tools/scripts/claudemd_linter.py . --level strict --skip 46,47 --full
+      - name: Clone ai-dev-tools
+        shell: bash
+        run: git clone --depth 1 https://github.com/DontKwo/ai-dev-tools.git "${{ runner.temp }}/_aitools"
 
-      - name: Display Lint Report on Failure
-        if: failure()
-        run: |
-          find .toolchain/ai-dev-tools/scripts/ -name "lint_report_*.txt" -exec cat {} + || true
-
-  test-and-build:
-    name: Test & Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install system dependencies for Qt and headless display
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libegl1 \
-            libgl1 \
-            libxkbcommon0 \
-            libdbus-1-3 \
-            libfontconfig1 \
-            libgl1-mesa-dri \
-            xvfb
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: 'latest'
-          enable-cache: true
-
-      - name: Install dependencies
+      - name: Install Python Dependencies
         run: uv sync --dev
 
-      - name: Run pytest test suite
-        env:
-          QT_QPA_PLATFORM: offscreen
-        run: xvfb-run -a uv run pytest
+      - name: Run Strict Linter and Link Check
+        shell: bash
+        run: |
+          if ! uv run --no-project python "${{ runner.temp }}/_aitools/scripts/claudemd_linter.py" . --level strict --full --no-cache; then
+            cat "${{ runner.temp }}/_aitools/scripts"/lint_report_*.txt || true
+            exit 1
+          fi
+          uv run --no-project python "${{ runner.temp }}/_aitools/scripts/link_checker.py" .
 
-      - name: Build distribution packages (wheel and sdist)
-        run: uv build
+      - name: Run Pytest and Self-Test
+        run: |
+          uv run python -m pytest -q
+          uv run python -m rocketcfd --self-test
 
-      - name: Upload distribution packages artifact
+      - name: Compute Next SemVer Release Version
+        id: ver
+        shell: python
+        run: |
+          import os, re, subprocess
+          subprocess.run(["git", "fetch", "--tags", "--force"], check=False)
+          raw_tags = subprocess.check_output(["git", "tag", "--list", "v*"], text=True).splitlines()
+          semvers = []
+          for t in raw_tags:
+              m = re.match(r"^v?(\d+)\.(\d+)\.(\d+)$", t.strip())
+              if m:
+                  semvers.append(tuple(int(x) for x in m.groups()))
+          base = max(semvers) if semvers else (0, 1, 0)
+          next_ver = (base[0], base[1], base[2] + 1) if f"v{base[0]}.{base[1]}.{base[2]}" in raw_tags else base
+          ver_str = f"{next_ver[0]}.{next_ver[1]}.{next_ver[2]}"
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write(f"version={ver_str}\ntag=v{ver_str}\n")
+          print(f"Resolved version v{ver_str}")
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
+
+  build-windows:
+    needs: lint-and-test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Dependencies and Run Tests
+        run: |
+          uv sync --dev
+          uv run python -m pytest -q
+
+      - name: Package Windows Standalone Executable and Self-Test
+        run: |
+          uv run python -m PyInstaller --noconfirm --clean --onefile --windowed --icon=assets/icon.ico --name RocketCFD-Windows --workpath build/pyi-work --distpath build/pyi-dist --paths src --add-data "src/rocketcfd/gui/static;rocketcfd/gui/static" --add-data "assets;assets" src/rocketcfd/__main__.py
+          .\build\pyi-dist\RocketCFD-Windows.exe --self-test | Out-Host
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          mkdir -Force release-assets | Out-Null
+          Copy-Item build\pyi-dist\RocketCFD-Windows.exe release-assets\RocketCFD-Windows.exe
+
+      - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rocketcfd-dist
-          path: dist/*
-          retention-days: 14
+          name: windows-package
+          path: release-assets/RocketCFD-Windows.exe
+
+  build-macos:
+    needs: lint-and-test
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Dependencies and Run Tests
+        run: |
+          uv sync --dev
+          uv run python -m pytest -q
+
+      - name: Package macOS Bundle and Self-Test
+        run: |
+          uv run python -m PyInstaller --noconfirm --clean --windowed --icon=assets/icon.ico --name RocketCFD --workpath build/pyi-work --distpath build/pyi-dist --paths src --add-data "src/rocketcfd/gui/static:rocketcfd/gui/static" --add-data "assets:assets" src/rocketcfd/__main__.py
+          ./build/pyi-dist/RocketCFD.app/Contents/MacOS/RocketCFD --self-test
+          mkdir -p release-assets
+          (cd build/pyi-dist && zip -r ../../release-assets/RocketCFD-macOS.zip RocketCFD.app)
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-package
+          path: release-assets/RocketCFD-macOS.zip
+
+  build-linux:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Dependencies and Run Tests
+        run: |
+          uv sync --dev
+          uv run python -m pytest -q
+
+      - name: Package Linux Binary and Self-Test
+        run: |
+          uv run python -m PyInstaller --noconfirm --clean --onefile --name RocketCFD-Linux --workpath build/pyi-work --distpath build/pyi-dist --paths src --add-data "src/rocketcfd/gui/static:rocketcfd/gui/static" --add-data "assets:assets" src/rocketcfd/__main__.py
+          chmod +x build/pyi-dist/RocketCFD-Linux
+          ./build/pyi-dist/RocketCFD-Linux --self-test
+          mkdir -p release-assets
+          tar -czf release-assets/RocketCFD-Linux.tar.gz -C build/pyi-dist RocketCFD-Linux
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-package
+          path: release-assets/RocketCFD-Linux.tar.gz
+
+  release:
+    needs: [lint-and-test, build-windows, build-macos, build-linux]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Release Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.lint-and-test.outputs.tag }}
+          name: RocketCFD ${{ needs.lint-and-test.outputs.tag }}
+          prerelease: false
+          make_latest: "true"
+          generate_release_notes: true
+          files: |
+            artifacts/windows-package/RocketCFD-Windows.exe
+            artifacts/macos-package/RocketCFD-macOS.zip
+            artifacts/linux-package/RocketCFD-Linux.tar.gz

@@ -1,0 +1,13 @@
+profile = "python-desktop-app"
+has_gui = true
+required_platforms = ["windows", "macos", "linux"]
+required_docs = [
+    "docs/INSTALLATION.md",
+    "docs/OPENFOAM_INSTALLATION.md",
+    "docs/UV_INSTALLATION.md",
+    "docs/DEVELOPMENT.md",
+    "docs/USER_GUIDE.md",
+    "docs/FAQ.md",
+    "docs/THEORY.md",
+    "docs/VALIDATION.md",
+]

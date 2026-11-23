@@ -1,10 +1,7 @@
-"""Results-table population for OpenFoamCaseResult sweeps; CSV export delegates to
-rocketcfd.aerotable so the GUI and any headless/validation callers share one writer."""
+"""Results-table formatting and CSV export for OpenFoamCaseResult sweeps."""
 from __future__ import annotations
 
 from collections.abc import Callable
-
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
 
 from rocketcfd.aerotable import write_aerotable_csv
 from rocketcfd.openfoam.case_result import OpenFoamCaseResult
@@ -41,14 +38,15 @@ CONDITION_QUANTITIES: dict[str, Callable[[OpenFoamCaseResult], float]] = {
 PLOT_X_QUANTITIES: dict[str, Callable[[OpenFoamCaseResult], float]] = {**CONDITION_QUANTITIES, **RESULT_QUANTITIES}
 
 
-def populate_case_table(table: QTableWidget, case_results: list[OpenFoamCaseResult]) -> None:
-    table.setRowCount(len(case_results))
-    for row, case in enumerate(case_results):
-        table.setItem(row, 0, QTableWidgetItem(case.condition.name))
-        table.setItem(row, 1, QTableWidgetItem(case.application))
-        for col, extractor in enumerate(RESULT_QUANTITIES.values(), start=2):
-            table.setItem(row, col, QTableWidgetItem(f"{extractor(case):.4g}"))
+def format_case_table_rows(case_results: list[OpenFoamCaseResult]) -> list[list[str]]:
+    """Format sweep case results as string rows aligned with RESULT_HEADERS."""
+    rows: list[list[str]] = []
+    for case in case_results:
+        values = [f"{extractor(case):.4g}" for extractor in RESULT_QUANTITIES.values()]
+        rows.append([case.condition.name, case.application, *values])
+    return rows
 
 
 def export_case_results_csv(path: str, case_results: list[OpenFoamCaseResult]) -> None:
+    """Export aerodynamic force and moment sweep results to CSV."""
     write_aerotable_csv(path, case_results, solver_regimes=[case.application for case in case_results])
