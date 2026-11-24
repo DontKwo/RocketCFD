@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 from pathlib import Path
 import threading
 import time
@@ -126,7 +127,12 @@ def test_webview_http_endpoints_end_to_end(tmp_path: Path) -> None:
         # Start async sweep job and poll status cleanly even without local OpenFOAM installed
         sweep_res = _post(
             "/api/sweep/start",
-            {"backend": "wsl", "sweep_velocities": "420", "sweep_alphas": "0", "case_root": str(tmp_path / "cases")},
+            {
+                "backend": "wsl" if os.name == "nt" else "native_linux",
+                "sweep_velocities": "420",
+                "sweep_alphas": "0",
+                "case_root": str(tmp_path / "cases"),
+            },
         )
         assert sweep_res["ok"] is True
         job_id = str(sweep_res["jobId"])
