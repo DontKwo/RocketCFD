@@ -62,10 +62,10 @@ def find_chromium_browser() -> str | None:
     """Locate Edge or Chrome executable for standalone WebView window and screenshots."""
     if os.name == "nt":
         win_candidates = [
-            os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
-            os.path.join(os.environ.get("ProgramFiles", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
             os.path.join(os.environ.get("ProgramFiles", ""), "Google", "Chrome", "Application", "chrome.exe"),
             os.path.join(os.environ.get("LOCALAPPDATA", ""), "Google", "Chrome", "Application", "chrome.exe"),
+            os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+            os.path.join(os.environ.get("ProgramFiles", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
         ]
         for candidate in win_candidates:
             if candidate and Path(candidate).is_file():
@@ -261,15 +261,14 @@ def capture_screenshot(base_url: str, output_target: Path) -> None:
     browser = find_chromium_browser()
     if not browser:
         raise RuntimeError("No Chromium or Edge executable available for --screenshot.")
+    gl_flags = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] if os.name != "nt" else []
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as profile_dir:
         subprocess.run(
             [
                 browser,
                 "--headless=new",
                 "--disable-gpu",
-                "--use-gl=angle",
-                "--use-angle=swiftshader",
-                "--enable-unsafe-swiftshader",
+                *gl_flags,
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-background-networking",
