@@ -1,64 +1,41 @@
 # RocketCFD User Guide
 
-Welcome to the RocketCFD user guide. This document provides a step-by-step tutorial on how to use RocketCFD from start to finish.
+Welcome to RocketCFD Studio, an offline 3D rocket aerodynamics, OpenFOAM case generation, and sweep automation desktop application.
 
-## 1. Getting Started
+## 1. Launching the Application
 
-### Installation
-Ensure you have `uv` installed, as it is the primary environment and build manager for RocketCFD.
+Download the standalone desktop executable from [RocketCFD Latest Releases](https://github.com/DontKwo/RocketCFD/releases/latest) and follow the [Desktop Installation Guide](INSTALLATION.md) for Windows, macOS, or Linux.
 
-To install dependencies and prepare the environment, run:
-```bash
-uv build
-```
-*(Tests can be run with `uv run pytest`)*
+*(Optional)* For running full live 3D OpenFOAM solves locally or via WSL2/Docker, follow the [OpenFOAM Installation Guide](OPENFOAM_INSTALLATION.md). Developers running from source can follow the [Developer Guide](DEVELOPMENT.md).
 
-### Launching the Application
-Download the desktop executable from [RocketCFD Latest Releases](https://github.com/DontKwo/RocketCFD/releases/latest) (see the [Desktop Installation Guide](INSTALLATION.md)), or launch from source with `uv`:
-```bash
-uv run rocketcfd
-```
+## 2. Geometry & CAD Import
 
-## 2. Setting Up a Simulation
+Use the **Rocket Geometry** card in the left panel:
+- **Parametric Rocket**: Configure nosecone shape (`conical`, `ogive`, `von_karman`), nose length, body length, diameter, fin count, and fin span, then click **Build Geometry**.
+- **Import STL / OBJ / STEP**: Switch **Geometry Source** to **Import STL / OBJ / STEP**, select your mesh file, choose source **Units** (`m`, `mm`, `cm`, `in`, `ft`), set **Scale** and **Rot X / Y / Z (deg)**, and click **Import & Transform**.
+- Inspect the assembled triangle panel mesh interactively inside the **3D Viewport** tab using orbit, pan, zoom, and surface shading modes (**Modified-Newtonian Cp**, **Solid Lit Aerospace**, **Triangular Mesh Wireframe**, and **Axial Station Gradient**).
 
-### Loading Geometry
-1. Click the **Load Geometry** button.
-2. Select an STL, OBJ, or PLY file. If you have the CAD backend installed, you can also load STEP or IGES files.
-3. The geometry will automatically be checked and repaired for watertightness using `trimesh` and `pymeshfix`. If automatic repair fails, you will need to manually fix your mesh in a 3D modeling tool.
+## 3. Flight Setup & OpenFOAM Export
 
-### Defining the Flight Profile
-The solver and fluid properties are determined by the flight condition you set.
-In the input pane, define:
-* **Mach Number**: The speed of the vehicle relative to the speed of sound.
-* **Altitude**: Automatically configures the ambient temperature and density using the 1976 Standard Atmosphere.
-* **Angle of Attack ($\alpha$)**: The pitch of the vehicle relative to the freestream.
-* **Sideslip ($\beta$)**: The yaw of the vehicle relative to the freestream.
+Use the **Flight & Solver Setup** card:
+1. Enter **Altitude (m)**, **Velocity (m/s)**, **Alpha (deg)**, and **Mesh Preset** (`Coarse`, `Medium`, `Fine`).
+2. Click **Evaluate Solver** to compute 1976 US Standard Atmosphere properties, Flight Mach, selected OpenFOAM solver (`simpleFoam` through `rhoCentralFoam`), dynamic pressure, and target $y^+$ boundary layer sizing.
+3. Click **Export Case** to generate `0/`, `constant/triSurface/`, and `system/` dictionaries on disk and preview generated file paths.
+4. Switch between **2D Engineering Views** and **Solver Regime Envelope** to inspect dimensioned drawings and altitude regime curves.
 
-*(Note: The solver is automatically selected based on the Mach number. For instance, subsonic flow might use `simpleFoam`, while supersonic flow will use `rhoCentralFoam`.)*
+## 4. Live Sweeps, Residuals & TACC HPC
 
-### Configuring the Mesh
-Navigate to the Mesh Settings pane to configure `snappyHexMesh` defaults:
-1. **Mesh Preset**: Choose from Coarse, Medium, or Fine presets to establish base cell sizing and refinement limits.
-2. **Boundary Layer Configuration**: Enable the target $y^+$ feature to automatically compute the first-layer cell thickness necessary to capture viscous boundary layer effects based on flat-plate theory.
-
-## 3. Running and Visualizing
-
-### Executing the Solve
-1. Click **Run Solve**.
-2. The application will generate the OpenFOAM case structure (`0/`, `constant/`, `system/`), execute blockMesh, surfaceFeatures, and snappyHexMesh.
-3. The selected solver (e.g., `rhoSimpleFoam`, `rhoPimpleFoam`) will begin executing.
-
-### Live Monitoring
-During local OpenFOAM solves, monitor `log.<solver>` residuals and force histories to verify convergence of continuity, momentum, and turbulence equations.
-
-### Visualization
-Inspect parametric geometry profiles, cross-sections, Mach flight envelopes, and reference benchmarks directly in the RocketCFD WebView Studio, or load sampled OpenFOAM VTK outputs via PyVista helpers.
+1. In **OpenFOAM Runner**, select your backend (**Windows WSL2**, **Native Linux**, or **Docker (OpenFOAM 2412)**), CPU core count, velocity list, and alpha list.
+2. Click **Run Sweep** to execute asynchronous OpenFOAM jobs, monitor live log output and residual convergence curves, and inspect aerodynamic force tables under **Residuals & Results** (or import existing OpenFOAM folders and export CSV results).
+3. Under **Validation & HPC**, run benchmark validation comparisons or enter your TACC host and SLURM allocation to generate ready-to-submit cluster batch scripts.
 
 ## Related Documentation
 
 - [Project Overview](../README.md)
 - [Desktop Installation Guide](INSTALLATION.md)
 - [OpenFOAM Installation Guide](OPENFOAM_INSTALLATION.md)
-- [FAQ](FAQ.md)
+- [Frequently Asked Questions](FAQ.md)
 - [Theoretical Background](THEORY.md)
+- [Validation Traceability](VALIDATION.md)
 - [Developer Guide](DEVELOPMENT.md)
+- [Security Policy](../SECURITY.md)

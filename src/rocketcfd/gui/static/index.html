@@ -9,67 +9,148 @@
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand">
-        <img src="/icon.png" alt="RocketCFD Icon" width="36" height="36" />
-        <div>
-          <h1>RocketCFD Studio</h1>
-          <p class="subtitle">Parametric rocket geometry, compressible flow regimes, and OpenFOAM automation</p>
+      <div class="brand-row">
+        <div class="brand">
+          <img src="/icon.png" alt="RocketCFD Icon" width="36" height="36" />
+          <div>
+            <h1>RocketCFD Studio</h1>
+            <p class="subtitle">3D CAD &amp; parametric rocket aerodynamics, solver regimes, and OpenFOAM automation</p>
+          </div>
         </div>
-      </div>
-
-      <div class="controls-bar">
-        <label class="control-group" for="rocket.nosecone_shape">
-          <span>Nosecone</span>
-          <select id="rocket.nosecone_shape" data-testid="rocket.nosecone_shape"></select>
-        </label>
-        <label class="control-group" for="rocket.nosecone_length">
-          <span>Nose (m)</span>
-          <input id="rocket.nosecone_length" type="number" step="0.05" min="0.1" max="5" value="0.45" data-testid="rocket.nosecone_length" />
-        </label>
-        <label class="control-group" for="rocket.body_length">
-          <span>Body (m)</span>
-          <input id="rocket.body_length" type="number" step="0.05" min="0.1" max="20" value="1.55" data-testid="rocket.body_length" />
-        </label>
-        <label class="control-group" for="rocket.diameter">
-          <span>Diameter (m)</span>
-          <input id="rocket.diameter" type="number" step="0.01" min="0.02" max="5" value="0.15" data-testid="rocket.diameter" />
-        </label>
-        <label class="control-group" for="rocket.fin_count">
-          <span>Fins</span>
-          <input id="rocket.fin_count" type="number" step="1" min="3" max="8" value="4" data-testid="rocket.fin_count" />
-        </label>
-        <label class="control-group" for="rocket.fin_span">
-          <span>Fin Span (m)</span>
-          <input id="rocket.fin_span" type="number" step="0.01" min="0.02" max="2" value="0.14" data-testid="rocket.fin_span" />
-        </label>
-        <button type="button" class="btn-primary" id="rocket.build_btn" data-testid="rocket.build_btn">Build Geometry</button>
-      </div>
-
-      <div class="controls-bar">
-        <label class="control-group" for="flow.altitude_input">
-          <span>Altitude (m)</span>
-          <input id="flow.altitude_input" type="number" step="100" min="0" max="80000" value="1500" data-testid="flow.altitude_input" />
-        </label>
-        <label class="control-group" for="flow.velocity_input">
-          <span>Velocity (m/s)</span>
-          <input id="flow.velocity_input" type="number" step="10" min="1" max="2500" value="420" data-testid="flow.velocity_input" />
-        </label>
-        <label class="control-group" for="flow.alpha_input">
-          <span>Alpha (deg)</span>
-          <input id="flow.alpha_input" type="number" step="0.5" min="-25" max="25" value="2.5" data-testid="flow.alpha_input" />
-        </label>
-        <label class="control-group" for="flow.mesh_preset">
-          <span>Mesh Preset</span>
-          <select id="flow.mesh_preset" data-testid="flow.mesh_preset"></select>
-        </label>
-        <button type="button" class="btn-secondary" id="flow.compute_btn" data-testid="flow.compute_btn">Evaluate Solver</button>
-        <button type="button" class="btn-secondary" id="flow.export_btn" data-testid="flow.export_btn">Export OpenFOAM Case</button>
         <button type="button" class="btn-secondary" id="header.theme_toggle" data-testid="header.theme_toggle">Light Theme</button>
       </div>
     </header>
 
+    <div class="studio-workspace">
+      <aside class="studio-sidebar">
+        <section class="card">
+          <h2>Rocket Geometry</h2>
+          <div class="sidebar-grid">
+            <label class="control-group sidebar-span-2" for="rocket.source_select">
+              <span>Geometry Source</span>
+              <select id="rocket.source_select" data-testid="rocket.source_select">
+                <option value="parametric">Parametric Rocket</option>
+                <option value="cad">Import STL / OBJ / STEP</option>
+              </select>
+            </label>
+            <label class="control-group" for="rocket.nosecone_shape">
+              <span>Nosecone</span>
+              <select id="rocket.nosecone_shape" data-testid="rocket.nosecone_shape"></select>
+            </label>
+            <label class="control-group" for="rocket.nosecone_length">
+              <span>Nose (m)</span>
+              <input id="rocket.nosecone_length" type="number" step="0.05" min="0.1" max="5" value="0.45" data-testid="rocket.nosecone_length" />
+            </label>
+            <label class="control-group" for="rocket.body_length">
+              <span>Body (m)</span>
+              <input id="rocket.body_length" type="number" step="0.05" min="0.1" max="20" value="1.55" data-testid="rocket.body_length" />
+            </label>
+            <label class="control-group" for="rocket.diameter">
+              <span>Diameter (m)</span>
+              <input id="rocket.diameter" type="number" step="0.01" min="0.02" max="5" value="0.15" data-testid="rocket.diameter" />
+            </label>
+            <label class="control-group" for="rocket.fin_count">
+              <span>Fins</span>
+              <input id="rocket.fin_count" type="number" step="1" min="3" max="8" value="4" data-testid="rocket.fin_count" />
+            </label>
+            <label class="control-group" for="rocket.fin_span">
+              <span>Fin Span (m)</span>
+              <input id="rocket.fin_span" type="number" step="0.01" min="0.02" max="2" value="0.14" data-testid="rocket.fin_span" />
+            </label>
+            <button type="button" class="btn-primary sidebar-span-2" id="rocket.build_btn" data-testid="rocket.build_btn">Build Geometry</button>
+          </div>
+
+          <div id="cadControlsBar" class="sidebar-grid" style="margin-top: 10px;" hidden>
+            <label class="control-group sidebar-span-2" for="cad.file_input">
+              <span>CAD File (.stl/.obj/.step)</span>
+              <input id="cad.file_input" type="file" accept=".stl,.obj,.ply,.step,.stp,.iges,.igs" data-testid="cad.file_input" />
+            </label>
+            <label class="control-group" for="cad.unit_select">
+              <span>Units</span>
+              <select id="cad.unit_select" data-testid="cad.unit_select">
+                <option value="m">Meters (m)</option>
+                <option value="mm">Millimeters (mm)</option>
+                <option value="cm">Centimeters (cm)</option>
+                <option value="in">Inches (in)</option>
+                <option value="ft">Feet (ft)</option>
+              </select>
+            </label>
+            <label class="control-group" for="cad.scale_input">
+              <span>Scale</span>
+              <input id="cad.scale_input" type="number" step="0.1" min="0.001" value="1.0" data-testid="cad.scale_input" />
+            </label>
+            <label class="control-group" for="cad.rot_x_input">
+              <span>Rot X (deg)</span>
+              <input id="cad.rot_x_input" type="number" step="5" value="0" data-testid="cad.rot_x_input" />
+            </label>
+            <label class="control-group" for="cad.rot_y_input">
+              <span>Rot Y (deg)</span>
+              <input id="cad.rot_y_input" type="number" step="5" value="0" data-testid="cad.rot_y_input" />
+            </label>
+            <label class="control-group" for="cad.rot_z_input">
+              <span>Rot Z (deg)</span>
+              <input id="cad.rot_z_input" type="number" step="5" value="0" data-testid="cad.rot_z_input" />
+            </label>
+            <button type="button" class="btn-primary sidebar-span-2" id="cad.apply_btn" data-testid="cad.apply_btn">Import &amp; Transform</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Flight &amp; Solver Setup</h2>
+          <div class="sidebar-grid">
+            <label class="control-group" for="flow.altitude_input">
+              <span>Altitude (m)</span>
+              <input id="flow.altitude_input" type="number" step="100" min="0" max="80000" value="1500" data-testid="flow.altitude_input" />
+            </label>
+            <label class="control-group" for="flow.velocity_input">
+              <span>Velocity (m/s)</span>
+              <input id="flow.velocity_input" type="number" step="10" min="1" max="2500" value="420" data-testid="flow.velocity_input" />
+            </label>
+            <label class="control-group" for="flow.alpha_input">
+              <span>Alpha (deg)</span>
+              <input id="flow.alpha_input" type="number" step="0.5" min="-25" max="25" value="2.5" data-testid="flow.alpha_input" />
+            </label>
+            <label class="control-group" for="flow.mesh_preset">
+              <span>Mesh Preset</span>
+              <select id="flow.mesh_preset" data-testid="flow.mesh_preset"></select>
+            </label>
+            <button type="button" class="btn-secondary" id="flow.compute_btn" data-testid="flow.compute_btn">Evaluate Solver</button>
+            <button type="button" class="btn-secondary" id="flow.export_btn" data-testid="flow.export_btn">Export Case</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>OpenFOAM Runner</h2>
+          <div class="sidebar-grid">
+            <label class="control-group" for="runner.backend_select">
+              <span>Backend</span>
+              <select id="runner.backend_select" data-testid="runner.backend_select">
+                <option value="wsl">Windows WSL2</option>
+                <option value="native_linux">Native Linux</option>
+                <option value="docker">Docker (OpenFOAM 2412)</option>
+              </select>
+            </label>
+            <label class="control-group" for="runner.cores_input">
+              <span>CPU Cores</span>
+              <input id="runner.cores_input" type="number" min="1" max="128" value="4" data-testid="runner.cores_input" />
+            </label>
+            <label class="control-group" for="runner.sweep_velocities">
+              <span>Velocities (m/s)</span>
+              <input id="runner.sweep_velocities" type="text" value="350, 420" data-testid="runner.sweep_velocities" />
+            </label>
+            <label class="control-group" for="runner.sweep_alphas">
+              <span>Alpha (deg)</span>
+              <input id="runner.sweep_alphas" type="text" value="0, 2.5" data-testid="runner.sweep_alphas" />
+            </label>
+            <button type="button" class="btn-primary" id="runner.start_sweep_btn" data-testid="runner.start_sweep_btn">Run Sweep</button>
+            <button type="button" class="btn-secondary" id="runner.cancel_btn" data-testid="runner.cancel_btn">Cancel Job</button>
+          </div>
+        </section>
+      </aside>
+
+      <main class="studio-main">
     <div id="status.banner" class="status-banner" role="status" aria-live="polite">
-      Configure rocket geometry and flight conditions to preview meshes and select OpenFOAM solvers.
+      Configure rocket geometry and flight conditions to inspect the 3D mesh, solver regimes, and OpenFOAM sweeps.
     </div>
 
     <section class="kpi-grid" aria-label="Aerodynamic Summary Metrics">
@@ -92,14 +173,73 @@
     </section>
 
     <section class="chart-tabs" aria-label="Studio Workspace Views">
-      <button type="button" class="tab-btn active" id="tabs.geometry_btn" data-testid="tabs.geometry_btn">Geometry Preview</button>
+      <button type="button" class="tab-btn active" id="tabs.viewport3d_btn" data-testid="tabs.viewport3d_btn">3D Viewport</button>
+      <button type="button" class="tab-btn" id="tabs.geometry_btn" data-testid="tabs.geometry_btn">2D Engineering Views</button>
       <button type="button" class="tab-btn" id="tabs.solver_btn" data-testid="tabs.solver_btn">Solver Regime Envelope</button>
-      <button type="button" class="tab-btn" id="tabs.validation_btn" data-testid="tabs.validation_btn">Validation Benchmarks</button>
+      <button type="button" class="tab-btn" id="tabs.results_btn" data-testid="tabs.results_btn">Residuals &amp; Results</button>
+      <button type="button" class="tab-btn" id="tabs.validation_btn" data-testid="tabs.validation_btn">Validation &amp; HPC</button>
     </section>
 
-    <section class="card chart-card">
+    <section id="panel.viewport3d" class="card">
+      <div class="viewport-toolbar">
+        <div class="controls-bar">
+          <label class="control-group" for="viewport.mode_select">
+            <span>Surface Shading</span>
+            <select id="viewport.mode_select" data-testid="viewport.mode_select">
+              <option value="cp">Modified-Newtonian Cp</option>
+              <option value="solid">Solid Lit Aerospace</option>
+              <option value="wireframe">Triangular Mesh Wireframe</option>
+              <option value="axial">Axial Station Gradient</option>
+            </select>
+          </label>
+          <button type="button" class="btn-secondary" id="viewport.reset_btn" data-testid="viewport.reset_btn">Reset Camera</button>
+        </div>
+        <span class="muted">Drag to orbit, scroll to zoom, right-drag to pan.</span>
+      </div>
+      <div id="viewport3d.host" class="viewport-stage"></div>
+    </section>
+
+    <section id="panel.imageView" class="card chart-card" hidden>
       <img id="preview.image" class="chart-img" alt="RocketCFD Engineering Visualization" hidden />
-      <p id="preview.empty" class="muted">Engineering schematics and regime plots appear here after geometry build or solver evaluation.</p>
+      <p id="preview.empty" class="muted">Engineering schematics and regime plots appear here after evaluation.</p>
+    </section>
+
+    <section id="panel.resultsView" class="card" hidden>
+      <div class="controls-bar">
+        <label class="control-group" for="results.import_path_input">
+          <span>Import Existing OpenFOAM Case Folder</span>
+          <input id="results.import_path_input" type="text" placeholder="~/rocketcfd-openfoam-cases" data-testid="results.import_path_input" />
+        </label>
+        <button type="button" class="btn-secondary" id="results.import_btn" data-testid="results.import_btn">Import Case Results</button>
+        <button type="button" class="btn-secondary" id="results.export_csv_btn" data-testid="results.export_csv_btn">Export Results CSV</button>
+      </div>
+      <div id="residuals.wrap" class="chart-card" style="margin-top: 12px;">
+        <img id="residuals.image" class="chart-img" alt="OpenFOAM Residual Convergence Chart" hidden />
+        <p id="residuals.empty" class="muted">Live solver residuals and convergence curves appear here during or after a sweep.</p>
+      </div>
+      <div id="results.table_host" class="table-wrap" style="margin-top: 12px;">
+        <p class="muted">No solved aerodynamic coefficient rows yet.</p>
+      </div>
+    </section>
+
+    <section id="panel.validationView" class="card" hidden>
+      <div class="controls-bar">
+        <button type="button" class="btn-primary" id="validation.run_live_btn" data-testid="validation.run_live_btn">Run Live OpenFOAM Validation</button>
+        <label class="control-group" for="tacc.host_input">
+          <span>TACC Host</span>
+          <input id="tacc.host_input" type="text" value="ls6.tacc.utexas.edu" data-testid="tacc.host_input" />
+        </label>
+        <label class="control-group" for="tacc.allocation_input">
+          <span>SLURM Allocation</span>
+          <input id="tacc.allocation_input" type="text" value="TG-AER00001" data-testid="tacc.allocation_input" />
+        </label>
+        <button type="button" class="btn-secondary" id="tacc.generate_btn" data-testid="tacc.generate_btn">Generate TACC SLURM Script</button>
+      </div>
+      <pre id="tacc.script_box" class="console-box" hidden></pre>
+      <div id="validation.live_host" class="table-wrap" style="margin-top: 10px;"></div>
+      <div id="validation.img_wrap" class="chart-card" style="margin-top: 10px;">
+        <img id="validation.image" class="chart-img" alt="Canonical Validation Benchmark Curve" hidden />
+      </div>
     </section>
 
     <div class="lower-grid">
@@ -111,14 +251,15 @@
       </section>
 
       <section class="card">
-        <h2>OpenFOAM Case &amp; Environment</h2>
+        <h2>OpenFOAM Case, Solver Log &amp; Environment</h2>
         <p id="env.status" class="muted">Checking OpenFOAM environment...</p>
-        <div id="files.case_host" class="table-wrap">
-          <p class="muted">Click Export OpenFOAM Case to write blockMeshDict, snappyHexMeshDict, controlDict, and body.stl to a local folder.</p>
-        </div>
+        <pre id="runner.log_box" class="console-box">Ready. Use Export OpenFOAM Case or Run OpenFOAM Sweep above.</pre>
+        <div id="files.case_host" class="table-wrap" style="margin-top: 10px;"></div>
       </section>
     </div>
+      </main>
+    </div>
   </div>
-  <script src="/app.js"></script>
+  <script type="module" src="/app.js"></script>
 </body>
 </html>

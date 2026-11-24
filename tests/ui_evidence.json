@@ -4,12 +4,30 @@
   "commit": "HEAD",
   "interactions": [
     {
+      "control_id": "viewport.mode_select",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::viewport3d::viewport.mode_select",
+      "sequence_number": 1,
+      "screen_state_id": "viewport3d"
+    },
+    {
+      "control_id": "viewport.reset_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::viewport3d::viewport.reset_btn",
+      "sequence_number": 2,
+      "screen_state_id": "viewport3d"
+    },
+    {
       "control_id": "rocket.nosecone_shape",
       "input_kind": "mouse",
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::geometry::rocket.nosecone_shape",
-      "sequence_number": 1,
+      "sequence_number": 3,
       "screen_state_id": "geometry"
     },
     {
@@ -18,7 +36,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::geometry::rocket.nosecone_length",
-      "sequence_number": 2,
+      "sequence_number": 4,
       "screen_state_id": "geometry"
     },
     {
@@ -27,7 +45,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::geometry::rocket.body_length",
-      "sequence_number": 3,
+      "sequence_number": 5,
       "screen_state_id": "geometry"
     },
     {
@@ -36,7 +54,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::geometry::rocket.diameter",
-      "sequence_number": 4,
+      "sequence_number": 6,
       "screen_state_id": "geometry"
     },
     {
@@ -45,7 +63,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::geometry::rocket.fin_count",
-      "sequence_number": 5,
+      "sequence_number": 7,
       "screen_state_id": "geometry"
     },
     {
@@ -54,7 +72,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::geometry::rocket.fin_span",
-      "sequence_number": 6,
+      "sequence_number": 8,
       "screen_state_id": "geometry"
     },
     {
@@ -63,8 +81,80 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::geometry::rocket.build_btn",
-      "sequence_number": 7,
+      "sequence_number": 9,
       "screen_state_id": "geometry"
+    },
+    {
+      "control_id": "rocket.source_select",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::cad::rocket.source_select",
+      "sequence_number": 10,
+      "screen_state_id": "cad"
+    },
+    {
+      "control_id": "cad.file_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::cad::cad.file_input",
+      "sequence_number": 11,
+      "screen_state_id": "cad"
+    },
+    {
+      "control_id": "cad.unit_select",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::cad::cad.unit_select",
+      "sequence_number": 12,
+      "screen_state_id": "cad"
+    },
+    {
+      "control_id": "cad.scale_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::cad::cad.scale_input",
+      "sequence_number": 13,
+      "screen_state_id": "cad"
+    },
+    {
+      "control_id": "cad.rot_x_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::cad::cad.rot_x_input",
+      "sequence_number": 14,
+      "screen_state_id": "cad"
+    },
+    {
+      "control_id": "cad.rot_y_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::cad::cad.rot_y_input",
+      "sequence_number": 15,
+      "screen_state_id": "cad"
+    },
+    {
+      "control_id": "cad.rot_z_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::cad::cad.rot_z_input",
+      "sequence_number": 16,
+      "screen_state_id": "cad"
+    },
+    {
+      "control_id": "cad.apply_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::cad::cad.apply_btn",
+      "sequence_number": 17,
+      "screen_state_id": "cad"
     },
     {
       "control_id": "tabs.geometry_btn",
@@ -72,7 +162,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::geometry::tabs.geometry_btn",
-      "sequence_number": 8,
+      "sequence_number": 18,
       "screen_state_id": "geometry"
     },
     {
@@ -81,7 +171,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::solver::flow.altitude_input",
-      "sequence_number": 9,
+      "sequence_number": 19,
       "screen_state_id": "solver"
     },
     {
@@ -90,7 +180,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::solver::flow.velocity_input",
-      "sequence_number": 10,
+      "sequence_number": 20,
       "screen_state_id": "solver"
     },
     {
@@ -99,7 +189,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::solver::flow.alpha_input",
-      "sequence_number": 11,
+      "sequence_number": 21,
       "screen_state_id": "solver"
     },
     {
@@ -108,7 +198,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::solver::flow.mesh_preset",
-      "sequence_number": 12,
+      "sequence_number": 22,
       "screen_state_id": "solver"
     },
     {
@@ -117,7 +207,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::solver::flow.compute_btn",
-      "sequence_number": 13,
+      "sequence_number": 23,
       "screen_state_id": "solver"
     },
     {
@@ -126,7 +216,7 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::solver::tabs.solver_btn",
-      "sequence_number": 14,
+      "sequence_number": 24,
       "screen_state_id": "solver"
     },
     {
@@ -135,8 +225,98 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::solver::flow.export_btn",
-      "sequence_number": 15,
+      "sequence_number": 25,
       "screen_state_id": "solver"
+    },
+    {
+      "control_id": "runner.backend_select",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::runner::runner.backend_select",
+      "sequence_number": 26,
+      "screen_state_id": "runner"
+    },
+    {
+      "control_id": "runner.cores_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::runner::runner.cores_input",
+      "sequence_number": 27,
+      "screen_state_id": "runner"
+    },
+    {
+      "control_id": "runner.sweep_velocities",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::runner::runner.sweep_velocities",
+      "sequence_number": 28,
+      "screen_state_id": "runner"
+    },
+    {
+      "control_id": "runner.sweep_alphas",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::runner::runner.sweep_alphas",
+      "sequence_number": 29,
+      "screen_state_id": "runner"
+    },
+    {
+      "control_id": "runner.start_sweep_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::runner::runner.start_sweep_btn",
+      "sequence_number": 30,
+      "screen_state_id": "runner"
+    },
+    {
+      "control_id": "runner.cancel_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::runner::runner.cancel_btn",
+      "sequence_number": 31,
+      "screen_state_id": "runner"
+    },
+    {
+      "control_id": "tabs.results_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::results::tabs.results_btn",
+      "sequence_number": 32,
+      "screen_state_id": "results"
+    },
+    {
+      "control_id": "results.import_path_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::results::results.import_path_input",
+      "sequence_number": 33,
+      "screen_state_id": "results"
+    },
+    {
+      "control_id": "results.import_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::results::results.import_btn",
+      "sequence_number": 34,
+      "screen_state_id": "results"
+    },
+    {
+      "control_id": "results.export_csv_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::results::results.export_csv_btn",
+      "sequence_number": 35,
+      "screen_state_id": "results"
     },
     {
       "control_id": "tabs.validation_btn",
@@ -144,7 +324,43 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::validation::tabs.validation_btn",
-      "sequence_number": 16,
+      "sequence_number": 36,
+      "screen_state_id": "validation"
+    },
+    {
+      "control_id": "tacc.host_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::validation::tacc.host_input",
+      "sequence_number": 37,
+      "screen_state_id": "validation"
+    },
+    {
+      "control_id": "tacc.allocation_input",
+      "input_kind": "keyboard",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::validation::tacc.allocation_input",
+      "sequence_number": 38,
+      "screen_state_id": "validation"
+    },
+    {
+      "control_id": "tacc.generate_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::validation::tacc.generate_btn",
+      "sequence_number": 39,
+      "screen_state_id": "validation"
+    },
+    {
+      "control_id": "validation.run_live_btn",
+      "input_kind": "mouse",
+      "trusted": true,
+      "control_state": "enabled",
+      "test_node_id": "playwright::validation::validation.run_live_btn",
+      "sequence_number": 40,
       "screen_state_id": "validation"
     },
     {
@@ -153,161 +369,17 @@
       "trusted": true,
       "control_state": "enabled",
       "test_node_id": "playwright::header::header.theme_toggle",
-      "sequence_number": 17,
+      "sequence_number": 41,
       "screen_state_id": "header"
     },
     {
-      "control_id": "rocket.nosecone_shape",
+      "control_id": "tabs.viewport3d_btn",
       "input_kind": "mouse",
       "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::rocket.nosecone_shape",
-      "sequence_number": 18,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "rocket.nosecone_length",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::rocket.nosecone_length",
-      "sequence_number": 19,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "rocket.body_length",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::rocket.body_length",
-      "sequence_number": 20,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "rocket.diameter",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::rocket.diameter",
-      "sequence_number": 21,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "rocket.fin_count",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::rocket.fin_count",
-      "sequence_number": 22,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "rocket.fin_span",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::rocket.fin_span",
-      "sequence_number": 23,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "rocket.build_btn",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::rocket.build_btn",
-      "sequence_number": 24,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "flow.altitude_input",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::flow.altitude_input",
-      "sequence_number": 25,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "flow.velocity_input",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::flow.velocity_input",
-      "sequence_number": 26,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "flow.alpha_input",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::flow.alpha_input",
-      "sequence_number": 27,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "flow.mesh_preset",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::flow.mesh_preset",
-      "sequence_number": 28,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "flow.compute_btn",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::flow.compute_btn",
-      "sequence_number": 29,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "flow.export_btn",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::flow.export_btn",
-      "sequence_number": 30,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "tabs.geometry_btn",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::tabs.geometry_btn",
-      "sequence_number": 31,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "tabs.solver_btn",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::tabs.solver_btn",
-      "sequence_number": 32,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "tabs.validation_btn",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::tabs.validation_btn",
-      "sequence_number": 33,
-      "screen_state_id": "audit"
-    },
-    {
-      "control_id": "header.theme_toggle",
-      "input_kind": "mouse",
-      "trusted": true,
-      "control_state": "disabled",
-      "test_node_id": "playwright::audit::header.theme_toggle",
-      "sequence_number": 34,
-      "screen_state_id": "audit"
+      "control_state": "enabled",
+      "test_node_id": "playwright::viewport3d::tabs.viewport3d_btn",
+      "sequence_number": 42,
+      "screen_state_id": "viewport3d"
     }
   ]
 }

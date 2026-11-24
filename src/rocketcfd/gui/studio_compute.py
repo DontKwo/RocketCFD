@@ -1,10 +1,11 @@
-"""Pure-Python geometry, solver-regime, case-export, and validation computations for WebView Studio."""
+"""Pure-Python geometry, solver-regime, CAD import, 3D mesh serialization, and TACC helpers."""
 from __future__ import annotations
 
 import base64
 import io
 import os
 from pathlib import Path
+import shutil
 import tempfile
 from typing import Any
 
@@ -17,7 +18,16 @@ import numpy as np
 from rocketcfd.atmosphere import us_standard_atmosphere
 from rocketcfd.flow import FlowCondition
 from rocketcfd.gas import speed_of_sound, sutherland_viscosity
-from rocketcfd.geometry import PanelMesh, frontal_area, to_panel_mesh, validate_geometry
+from rocketcfd.geometry import (
+    PanelMesh,
+    brep_backend_available,
+    frontal_area,
+    load_model,
+    rotate_mesh,
+    scale_mesh,
+    to_panel_mesh,
+    validate_geometry,
+)
 from rocketcfd.openfoam.boundary_layer import first_layer_thickness
 from rocketcfd.openfoam.case_builder import write_mesh_case
 from rocketcfd.openfoam.runner import find_openfoam_bashrc_native, list_wsl_distros
@@ -33,6 +43,7 @@ from rocketcfd.solver_selection import (
     MachOutOfRangeError,
     select_solver,
 )
+from rocketcfd.tacc import TaccSettings, generate_slurm_script
 from rocketcfd.templates_geometry import (
     NOSECONE_SHAPES,
     assemble_rocket,
@@ -49,6 +60,14 @@ from rocketcfd.validation.reference_data import (
     slender_cone_wave_drag_cd,
     sphere_cd_reference,
 )
+
+UNIT_TO_METERS = {
+    "m": 1.0,
+    "cm": 0.01,
+    "mm": 0.001,
+    "in": 0.0254,
+    "ft": 0.3048,
+}
 
 
 def _encode_figure_data_url(figure: Figure) -> str:
@@ -67,6 +86,46 @@ def _positive_float(payload: dict[str, Any], key: str, default: float) -> float:
     if parsed_value <= 0.0:
         raise ValueError(f"{key} must be positive (got {parsed_value:g}).")
     return parsed_value
+
+
+def serialize_panel_mesh_3d(panel: PanelMesh, max_faces: int = 12000) -> dict[str, Any]:
+    """Serialize PanelMesh geometry and aerodynamic pressure preview scalars for Three.js."""
+    verts = panel.vertices
+    faces = panel.faces
+    normals = panel.normals
+    n_verts = int(verts.shape[0])
+
+    # Compute modified-Newtonian surface Cp preview (-n_x freestream windward component)
+    face_cp = 2.0 * (np.clip(-normals[:, 0], 0.0, 1.0) ** 2)
+    vertex_cp_sum = np.zeros(n_verts, dtype=np.float64)
+    vertex_counts = np.zeros(n_verts, dtype=np.int32)
+    for corner_idx in range(3):
+        vertex_ids = faces[:, corner_idx]
+        np.add.at(vertex_cp_sum, vertex_ids, face_cp)
+        np.add.at(vertex_counts, vertex_ids, 1)
+    vertex_cp = np.divide(vertex_cp_sum, np.maximum(vertex_counts, 1))
+
+    x_min, x_max = float(verts[:, 0].min()), float(verts[:, 0].max())
+    axial_span = max(x_max - x_min, 1e-6)
+    axial_norm = (verts[:, 0] - x_min) / axial_span
+
+    stride = max(1, len(faces) // max_faces)
+    sampled_faces = faces[::stride]
+    return {
+        "positions": np.round(verts.reshape(-1), 5).tolist(),
+        "indices": sampled_faces.reshape(-1).astype(int).tolist(),
+        "cpScalars": np.round(vertex_cp, 4).tolist(),
+        "axialScalars": np.round(axial_norm, 4).tolist(),
+        "bounds": [round(bound_coord, 5) for bound_coord in panel.bounds()],
+        "vertexCount": n_verts,
+        "faceCount": int(sampled_faces.shape[0]),
+    }
+
+
+def build_default_panel_mesh() -> PanelMesh:
+    """Construct default parametric rocket PanelMesh for initial Studio session."""
+    panel, _report, _params = _assemble_panel_mesh({})
+    return panel
 
 
 def _assemble_panel_mesh(payload: dict[str, Any]) -> tuple[PanelMesh, Any, dict[str, float]]:
@@ -175,18 +234,15 @@ def build_defaults_payload() -> dict[str, Any]:
             "platform": os.name,
             "wslDistros": wsl_distros,
             "nativeOpenFoamBashrc": native_bashrc or "Not detected locally (optional for preview/export)",
+            "dockerAvailable": shutil.which("docker") is not None,
+            "brepAvailable": brep_backend_available(),
         },
         "validation": build_validation_payload({}),
     }
 
 
-def build_geometry_payload(payload: dict[str, Any]) -> dict[str, Any]:
-    """Build parametric rocket PanelMesh, metrics, and engineering schematic preview."""
-    try:
-        panel, report, _params = _assemble_panel_mesh(payload)
-    except (ValueError, RuntimeError) as exc:
-        return {"ok": False, "error": str(exc)}
-
+def _geometry_response_from_panel(panel: PanelMesh, warnings: list[str], is_manifold: bool, label: str) -> dict[str, Any]:
+    """Format uniform geometry metrics, 2D schematic, and 3D WebGL buffer payload."""
     bounds = panel.bounds()
     total_len = bounds[1] - bounds[0]
     diameter = max(bounds[3] - bounds[2], bounds[5] - bounds[4])
@@ -194,7 +250,7 @@ def build_geometry_payload(payload: dict[str, Any]) -> dict[str, Any]:
     preview_url = _render_geometry_preview(panel, total_len, diameter)
     return {
         "ok": True,
-        "message": f"Built parametric rocket assembly ({panel.panel_count} triangular panels).",
+        "message": f"Built {label} ({panel.panel_count} triangular panels).",
         "metrics": {
             "panelCount": panel.panel_count,
             "vertexCount": int(panel.vertices.shape[0]),
@@ -202,11 +258,74 @@ def build_geometry_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "spanMeters": round(diameter, 4),
             "wettedAreaM2": round(float(panel.areas.sum()), 4),
             "frontalAreaM2": round(ref_area, 5),
-            "isManifold": bool(report.is_manifold),
-            "warnings": list(report.warnings),
+            "isManifold": bool(is_manifold),
+            "warnings": list(warnings),
         },
         "previewImage": preview_url,
+        "mesh3d": serialize_panel_mesh_3d(panel),
     }
+
+
+def build_geometry_with_panel(payload: dict[str, Any]) -> tuple[dict[str, Any], PanelMesh | None]:
+    """Build parametric rocket PanelMesh and return both UI response and active PanelMesh."""
+    try:
+        panel, report, _params = _assemble_panel_mesh(payload)
+    except (ValueError, RuntimeError) as exc:
+        return {"ok": False, "error": str(exc)}, None
+    resp = _geometry_response_from_panel(panel, list(report.warnings), bool(report.is_manifold), "parametric rocket assembly")
+    return resp, panel
+
+
+def build_geometry_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Build parametric rocket PanelMesh, metrics, 2D schematic, and 3D WebGL buffers."""
+    resp, _panel = build_geometry_with_panel(payload)
+    return resp
+
+
+def import_cad_payload(payload: dict[str, Any]) -> tuple[dict[str, Any], PanelMesh | None]:
+    """Load uploaded STL/OBJ/STEP model, apply unit scaling and Euler rotation, and serialize 3D view."""
+    try:
+        unit_key = str(payload.get("unit", "m")).strip().lower()
+        if unit_key not in UNIT_TO_METERS:
+            raise ValueError(f"Unsupported unit '{unit_key}'. Choose one of {tuple(UNIT_TO_METERS)}.")
+        scale_factor = _positive_float(payload, "scale", 1.0) * UNIT_TO_METERS[unit_key]
+        rot_x = float(payload.get("rot_x", 0.0))
+        rot_y = float(payload.get("rot_y", 0.0))
+        rot_z = float(payload.get("rot_z", 0.0))
+
+        file_b64 = payload.get("fileBase64")
+        file_name = Path(str(payload.get("fileName", "model.stl"))).name
+        if isinstance(file_b64, str) and file_b64.strip():
+            raw_bytes = base64.b64decode(file_b64.split(",")[-1])
+            ext = Path(file_name).suffix.lower() or ".stl"
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                tmp_model = Path(tmp_dir) / f"upload{ext}"
+                tmp_model.write_bytes(raw_bytes)
+                loaded = load_model(tmp_model)
+        else:
+            raw_path = str(payload.get("filePath", "")).strip()
+            if not raw_path:
+                raise ValueError("Provide an STL/OBJ/STEP file upload or local file path.")
+            model_path = Path(raw_path).expanduser()
+            if not model_path.is_file():
+                raise ValueError(f"Model file not found: {model_path}")
+            loaded = load_model(model_path)
+            file_name = model_path.name
+
+        transformed = scale_mesh(loaded, scale_factor)
+        if rot_x != 0.0 or rot_y != 0.0 or rot_z != 0.0:
+            transformed = rotate_mesh(transformed, (rot_x, rot_y, rot_z))
+        report = validate_geometry(transformed)
+        panel = to_panel_mesh(transformed)
+        resp = _geometry_response_from_panel(
+            panel,
+            list(report.warnings),
+            bool(report.is_manifold),
+            f"imported CAD model ({file_name})",
+        )
+        return resp, panel
+    except (ValueError, RuntimeError, OSError) as exc:
+        return {"ok": False, "error": str(exc)}, None
 
 
 def build_condition_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -294,10 +413,13 @@ def build_condition_payload(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def export_openfoam_case_payload(payload: dict[str, Any]) -> dict[str, Any]:
+def export_openfoam_case_payload(payload: dict[str, Any], active_panel: PanelMesh | None = None) -> dict[str, Any]:
     """Generate a complete OpenFOAM mesh/system/triSurface directory on disk."""
     try:
-        panel, _report, _params = _assemble_panel_mesh(payload)
+        if active_panel is not None and str(payload.get("geometry_source", "parametric")) == "cad":
+            panel = active_panel
+        else:
+            panel, _report, _params = _assemble_panel_mesh(payload)
         altitude_m = max(0.0, float(payload.get("altitude_m", 1500.0)))
         velocity_mps = _positive_float(payload, "velocity_mps", 420.0)
         preset_name = str(payload.get("mesh_preset", "Medium"))
@@ -348,3 +470,27 @@ def build_validation_payload(payload: dict[str, Any]) -> dict[str, Any]:
     fig.tight_layout(pad=1.2)
 
     return {"ok": True, "rows": rows, "validationImage": _encode_figure_data_url(fig)}
+
+
+def build_tacc_script_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Generate a ready-to-submit TACC Lonestar6/Stampede SLURM OpenFOAM script."""
+    host = str(payload.get("host", "ls6.tacc.utexas.edu")).strip() or "ls6.tacc.utexas.edu"
+    username = str(payload.get("username", "researcher")).strip() or "researcher"
+    allocation = str(payload.get("allocation", "TG-AER00001")).strip() or "TG-AER00001"
+    remote_root = str(payload.get("remote_case_root", "$WORK/rocketcfd")).strip() or "$WORK/rocketcfd"
+    job_name = str(payload.get("job_name", "rocketcfd_run")).strip() or "rocketcfd_run"
+    application = str(payload.get("application", "rhoCentralFoam")).strip() or "rhoCentralFoam"
+    nodes = max(1, int(payload.get("nodes", 1)))
+    tasks_per_node = max(1, int(payload.get("tasks_per_node", 56)))
+    walltime = str(payload.get("walltime", "02:00:00")).strip() or "02:00:00"
+    settings = TaccSettings(
+        host=host,
+        username=username,
+        allocation=allocation,
+        remote_case_root=remote_root,
+        nodes=nodes,
+        tasks_per_node=tasks_per_node,
+        walltime=walltime,
+    )
+    script = generate_slurm_script(job_name, f"{remote_root}/{job_name}", application, settings)
+    return {"ok": True, "message": "Generated TACC SLURM batch script.", "script": script}

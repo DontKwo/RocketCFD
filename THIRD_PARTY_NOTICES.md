@@ -13,6 +13,7 @@ RocketCFD is licensed under the [MIT License](LICENSE) (`Copyright (c) 2026 Dont
 - **NetworkX** (`BSD-3-Clause`): Dependency ordering utilities.
 - **Pint** (`BSD-3-Clause`): Physical unit conversions.
 - **PyVista** (`MIT`): VTK surface and volume field extraction helpers.
+- **Three.js** (`MIT`): Embedded interactive WebGL 3D mesh, Cp surface, and orbit viewport (`OrbitControls`).
 - **Requests** (`Apache-2.0`): Optional remote deployment HTTP client.
 - **OpenFOAM (Optional Runtime Solver)** (`GPL-3.0`): External CFD solver suite installed separately by users; see the [OpenFOAM Installation Guide](docs/OPENFOAM_INSTALLATION.md).
 
